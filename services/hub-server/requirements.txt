@@ -40,6 +40,9 @@ limits==3.6.0
 jsonrpc-base==2.2.0
 jsonrpc-async==2.1.2
 
+# MCP SDK (for MCP server implementation)
+mcp>=1.0.0
+
 # Utilities
 python-dateutil==2.8.2
 pytz==2023.3

@@ -14,9 +14,8 @@ class SentimentAnalysisTool:
     """Enhanced sentiment analysis combining news sentiment with market momentum"""
 
     def __init__(self):
-        # Import news tool for sentiment analysis
-        from .unified_market_data import FinancialNewsTool
-        self.news_tool = FinancialNewsTool()
+        # Lazy import: news tool imported on-demand
+        self.news_tool = None
 
     async def get_tool_info(self) -> Dict:
         """Get tool information for MCP protocol"""
@@ -186,6 +185,11 @@ class SentimentAnalysisTool:
 
     async def execute(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
         """Execute enhanced sentiment analysis"""
+        # Lazy import of news tool
+        if self.news_tool is None:
+            from .unified_market_data import FinancialNewsTool
+            self.news_tool = FinancialNewsTool()
+
         symbol = arguments.get("symbol", "").upper()
         query = arguments.get("query", symbol)
         days = arguments.get("days", 7)

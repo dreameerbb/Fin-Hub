@@ -5,7 +5,7 @@ Provides comprehensive market data access through MCP protocol
 
 import json
 from typing import Dict, Any, List
-from app.clients.unified_api_manager import UnifiedAPIManager
+# Lazy import: UnifiedAPIManager imported on-demand to reduce startup time
 
 
 class UnifiedMarketDataTool:
@@ -59,6 +59,9 @@ class UnifiedMarketDataTool:
 
     async def execute(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
         """Execute the tool with given arguments"""
+        # Lazy import to reduce module load time
+        from app.clients.unified_api_manager import UnifiedAPIManager
+
         # Support both 'data_type' and 'query_type' for compatibility
         data_type = arguments.get("data_type") or arguments.get("query_type")
 
@@ -147,6 +150,9 @@ class StockQuoteTool:
         }
 
     async def execute(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
+        # Lazy import to reduce module load time
+        from app.clients.unified_api_manager import UnifiedAPIManager
+
         symbol = arguments.get("symbol")
         if not symbol:
             return {"error": "Symbol is required"}
@@ -176,6 +182,9 @@ class CryptoPriceTool:
         }
 
     async def execute(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
+        # Lazy import to reduce module load time
+        from app.clients.unified_api_manager import UnifiedAPIManager
+
         coin_id = arguments.get("coin_id", "bitcoin")
 
         async with UnifiedAPIManager() as api_manager:
@@ -207,6 +216,9 @@ class FinancialNewsTool:
         }
 
     async def execute(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
+        # Lazy import to reduce module load time
+        from app.clients.unified_api_manager import UnifiedAPIManager
+
         query = arguments.get("query", "stock market")
         page_size = arguments.get("page_size", 10)
 
@@ -239,6 +251,9 @@ class EconomicIndicatorTool:
         }
 
     async def execute(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
+        # Lazy import to reduce module load time
+        from app.clients.unified_api_manager import UnifiedAPIManager
+
         series_id = arguments.get("series_id", "GDP")
         limit = arguments.get("limit", 10)
 
@@ -261,6 +276,9 @@ class MarketOverviewTool:
         }
 
     async def execute(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
+        # Lazy import to reduce module load time
+        from app.clients.unified_api_manager import UnifiedAPIManager
+
         async with UnifiedAPIManager() as api_manager:
             result = await api_manager.get_market_overview()
             return result if result else {"error": "Failed to get market overview"}
@@ -280,6 +298,9 @@ class APIStatusTool:
         }
 
     async def execute(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
+        # Lazy import to reduce module load time
+        from app.clients.unified_api_manager import UnifiedAPIManager
+
         async with UnifiedAPIManager() as api_manager:
             # Trigger a test call first
             await api_manager.get_stock_quote("AAPL")
