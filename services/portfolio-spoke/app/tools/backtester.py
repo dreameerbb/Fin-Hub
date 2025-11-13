@@ -157,7 +157,7 @@ async def backtester(
 
         return {
             "performance": performance,
-            "equity_curve": equity_curve.to_dict(),
+            "equity_curve": {str(k): float(v) for k, v in equity_curve.items()},
             "trades": trades[:100],  # Limit to first 100 trades for output
             "monthly_returns": monthly_returns,
             "metrics_by_year": metrics_by_year,
@@ -168,7 +168,7 @@ async def backtester(
                 "num_tickers": len(tickers),
                 "start_date": start_date,
                 "end_date": end_date,
-                "initial_capital": initial_capital,
+                "initial_capital": float(initial_capital),
                 "rebalance_frequency": rebalance_frequency,
                 "total_trades": len(trades)
             },

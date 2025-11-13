@@ -166,17 +166,17 @@ class TailRiskTool:
 
         return {
             "method": "Generalized Pareto Distribution (GPD)",
-            "threshold": round(threshold * 100, 4),
-            "exceedances_count": len(exceedances),
-            "exceedances_percent": round((n_exceedances / n) * 100, 2),
+            "threshold": float(round(threshold * 100, 4)),
+            "exceedances_count": int(len(exceedances)),
+            "exceedances_percent": float(round((n_exceedances / n) * 100, 2)),
             "parameters": {
-                "shape_xi": round(xi, 4),
-                "scale_beta": round(beta, 4),
-                "tail_index_alpha": round(tail_index, 4) if tail_index else "Infinite (no tail)"
+                "shape_xi": float(round(xi, 4)),
+                "scale_beta": float(round(beta, 4)),
+                "tail_index_alpha": float(round(tail_index, 4)) if tail_index else "Infinite (no tail)"
             },
             "extreme_var": {
-                "99_percent": round(var_99 * 100, 4),
-                "99_9_percent": round(var_999 * 100, 4)
+                "99_percent": float(round(var_99 * 100, 4)),
+                "99_9_percent": float(round(var_999 * 100, 4))
             },
             "interpretation": self._interpret_evt(xi, tail_index)
         }
@@ -206,8 +206,8 @@ class TailRiskTool:
         std_loss = losses.std()
 
         for p in percentiles:
-            actual_percentiles[f"{p}%"] = round(np.percentile(losses, p) * 100, 4)
-            normal_percentiles[f"{p}%"] = round((mean_loss + stats.norm.ppf(p/100) * std_loss) * 100, 4)
+            actual_percentiles[f"{p}%"] = float(round(np.percentile(losses, p) * 100, 4))
+            normal_percentiles[f"{p}%"] = float(round((mean_loss + stats.norm.ppf(p/100) * std_loss) * 100, 4))
 
         # Fat tail ratio (actual vs normal at 99%)
         actual_99 = np.percentile(losses, 99)
@@ -223,16 +223,16 @@ class TailRiskTool:
         expected_extreme = len(losses) * (1 - stats.norm.cdf(3))
 
         return {
-            "fat_tail_ratio": round(fat_tail_ratio, 4),
+            "fat_tail_ratio": float(round(fat_tail_ratio, 4)),
             "interpretation": self._interpret_fat_tail(fat_tail_ratio),
             "actual_percentiles": actual_percentiles,
             "normal_percentiles": normal_percentiles,
             "extreme_events_3std": {
-                "actual_count": extreme_count,
-                "expected_under_normality": round(expected_extreme, 2),
-                "multiplier": round(extreme_count / expected_extreme, 2) if expected_extreme > 0 else "N/A"
+                "actual_count": int(extreme_count),
+                "expected_under_normality": float(round(expected_extreme, 2)),
+                "multiplier": float(round(extreme_count / expected_extreme, 2)) if expected_extreme > 0 else "N/A"
             },
-            "largest_losses": [round(x * 100, 4) for x in sorted(losses, reverse=True)[:5]]
+            "largest_losses": [float(round(x * 100, 4)) for x in sorted(losses, reverse=True)[:5]]
         }
 
     def _interpret_fat_tail(self, ratio: float) -> str:
@@ -259,14 +259,14 @@ class TailRiskTool:
         jb_stat, jb_pvalue = stats.jarque_bera(returns)
 
         return {
-            "skewness": round(skewness, 4),
+            "skewness": float(round(skewness, 4)),
             "skewness_interpretation": self._interpret_skewness(skewness),
-            "excess_kurtosis": round(kurtosis_excess, 4),
+            "excess_kurtosis": float(round(kurtosis_excess, 4)),
             "kurtosis_interpretation": self._interpret_kurtosis(kurtosis_excess),
             "jarque_bera_test": {
-                "statistic": round(jb_stat, 4),
-                "p_value": round(jb_pvalue, 6),
-                "is_normal": jb_pvalue > 0.05,
+                "statistic": float(round(jb_stat, 4)),
+                "p_value": float(round(jb_pvalue, 6)),
+                "is_normal": bool(jb_pvalue > 0.05),
                 "interpretation": "Distribution is normal" if jb_pvalue > 0.05 else "Distribution is NOT normal - reject normality"
             },
             "overall_assessment": self._assess_distribution_shape(skewness, kurtosis_excess)
@@ -350,29 +350,29 @@ class TailRiskTool:
 
         return {
             "black_swan_probability": {
-                "annual_probability": round(black_swan_prob * 252, 6),
-                "expected_once_every_n_years": round(black_swan_expected_years, 2)
+                "annual_probability": float(round(black_swan_prob * 252, 6)),
+                "expected_once_every_n_years": float(round(black_swan_expected_years, 2))
             },
             "extreme_event_frequencies": {
                 "3_sigma_events": {
-                    "actual": events_3sigma,
-                    "expected_normal": round(expected_3sigma, 2),
-                    "multiplier": round(events_3sigma / expected_3sigma, 2) if expected_3sigma > 0 else "N/A"
+                    "actual": int(events_3sigma),
+                    "expected_normal": float(round(expected_3sigma, 2)),
+                    "multiplier": float(round(events_3sigma / expected_3sigma, 2)) if expected_3sigma > 0 else "N/A"
                 },
                 "4_sigma_events": {
-                    "actual": events_4sigma,
-                    "expected_normal": round(expected_4sigma, 4),
-                    "multiplier": round(events_4sigma / expected_4sigma, 2) if expected_4sigma > 0.01 else "N/A"
+                    "actual": int(events_4sigma),
+                    "expected_normal": float(round(expected_4sigma, 4)),
+                    "multiplier": float(round(events_4sigma / expected_4sigma, 2)) if expected_4sigma > 0.01 else "N/A"
                 },
                 "5_sigma_events": {
-                    "actual": events_5sigma,
-                    "expected_normal": round(expected_5sigma, 6),
-                    "multiplier": round(events_5sigma / expected_5sigma, 2) if expected_5sigma > 0.001 else "N/A"
+                    "actual": int(events_5sigma),
+                    "expected_normal": float(round(expected_5sigma, 6)),
+                    "multiplier": float(round(events_5sigma / expected_5sigma, 2)) if expected_5sigma > 0.001 else "N/A"
                 }
             },
             "worst_observed_event": {
-                "loss_percent": round(worst_loss * 100, 4),
-                "sigma_level": round(worst_loss_sigma, 2),
+                "loss_percent": float(round(worst_loss * 100, 4)),
+                "sigma_level": float(round(worst_loss_sigma, 2)),
                 "interpretation": self._interpret_worst_event(worst_loss_sigma)
             },
             "tail_risk_alert": self._generate_tail_risk_alert(events_3sigma, expected_3sigma, events_5sigma)
@@ -487,7 +487,7 @@ class TailRiskTool:
             recommendations.append("Tail risk within acceptable range for asset class")
 
         return {
-            "tail_risk_score": round(tail_risk_percent, 2),
+            "tail_risk_score": float(round(tail_risk_percent, 2)),
             "risk_level": self._risk_level(tail_risk_percent),
             "warnings": warnings if warnings else ["No significant tail risk warnings"],
             "recommendations": recommendations

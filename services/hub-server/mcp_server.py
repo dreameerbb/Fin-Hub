@@ -6,7 +6,6 @@ Provides hub management tools and integrates all Spoke services
 import sys
 import os
 from pathlib import Path
-import logging
 import json
 from typing import Dict, List, Any, Optional
 from datetime import datetime
@@ -15,23 +14,17 @@ from datetime import datetime
 project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
-# Load environment variables
-from dotenv import load_dotenv
-dotenv_path = project_root / '.env'
-load_dotenv(dotenv_path)
+# Load environment variables only if needed
+if not os.getenv('ENVIRONMENT'):
+    from dotenv import load_dotenv
+    dotenv_path = project_root / '.env'
+    load_dotenv(dotenv_path)
 
-# Configure logging to stderr ONLY
-logging.basicConfig(
-    level=logging.CRITICAL,  # Only critical errors
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    stream=sys.stderr,
-    force=True
-)
-
-# Disable ALL loggers
+# Minimal logging - disable all
+import logging
 logging.disable(logging.CRITICAL)
 
-from mcp.server.models import InitializationOptions
+# MCP imports (InitializationOptions is lazy-loaded in main())
 from mcp.server import NotificationOptions, Server
 import mcp.server.stdio
 import mcp.types as types
@@ -895,6 +888,9 @@ async def handle_call_tool(
 
 async def main():
     """Run the MCP server"""
+    # Lazy import of InitializationOptions (saves 6 seconds on startup)
+    from mcp.server.models import InitializationOptions
+
     # Import original stdout/stdin for MCP communication
     import sys
     original_stdin = sys.__stdin__

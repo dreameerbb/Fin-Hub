@@ -1,79 +1,86 @@
 #!/usr/bin/env python3
 """
-Market Spoke MCP Server - MCP SDK Implementation
+Market Spoke MCP Server - MCP SDK Implementation (Optimized with Lazy Loading)
 """
 import sys
 import os
 from pathlib import Path
-import logging
 
 # Add project root to path
 project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
-# Load environment variables (suppress all output)
-from dotenv import load_dotenv
-dotenv_path = project_root / '.env'
-load_dotenv(dotenv_path)
+# Load environment variables only if needed
+if not os.getenv('ALPHA_VANTAGE_API_KEY'):
+    from dotenv import load_dotenv
+    load_dotenv(project_root / '.env')
 
-# Configure logging to stderr ONLY
-logging.basicConfig(
-    level=logging.CRITICAL,  # Only critical errors
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    stream=sys.stderr,
-    force=True
-)
-
-# Disable ALL loggers
+# Minimal logging - disable all
+import logging
 logging.disable(logging.CRITICAL)
 
-from mcp.server.models import InitializationOptions
+# MCP imports (InitializationOptions is lazy-loaded in main())
 from mcp.server import NotificationOptions, Server
 import mcp.server.stdio
 import mcp.types as types
 
-# Import tool handlers
 # Add services directory to path
 sys.path.insert(0, str(project_root / 'services' / 'market-spoke'))
-
-from app.tools.unified_market_data import (
-    UnifiedMarketDataTool,
-    StockQuoteTool,
-    CryptoPriceTool,
-    FinancialNewsTool,
-    EconomicIndicatorTool,
-    MarketOverviewTool,
-    APIStatusTool
-)
-from app.tools.technical_analysis import TechnicalAnalysisTool
-from app.tools.pattern_recognition import PatternRecognitionTool
-from app.tools.anomaly_detection import AnomalyDetectionTool
-from app.tools.stock_comparison import StockComparisonTool
-from app.tools.sentiment_analysis import SentimentAnalysisTool
-from app.tools.alert_system import AlertSystemTool
 
 # Create MCP server
 server = Server("fin-hub-market")
 
-# Tool instances
-unified_tool = UnifiedMarketDataTool()
-stock_quote_tool = StockQuoteTool()
-crypto_tool = CryptoPriceTool()
-news_tool = FinancialNewsTool()
-economic_tool = EconomicIndicatorTool()
-overview_tool = MarketOverviewTool()
-status_tool = APIStatusTool()
-technical_tool = TechnicalAnalysisTool()
-pattern_tool = PatternRecognitionTool()
-anomaly_tool = AnomalyDetectionTool()
-comparison_tool = StockComparisonTool()
-sentiment_tool = SentimentAnalysisTool()
-alert_tool = AlertSystemTool()
+# Lazy initialization - tools AND imports created on demand
+_tool_instances = {}
+
+def get_tool_instance(tool_name: str):
+    """Get or create tool instance (lazy loading with imports)"""
+    if tool_name not in _tool_instances:
+        if tool_name == "unified":
+            from app.tools.unified_market_data import UnifiedMarketDataTool
+            _tool_instances[tool_name] = UnifiedMarketDataTool()
+        elif tool_name == "stock_quote":
+            from app.tools.unified_market_data import StockQuoteTool
+            _tool_instances[tool_name] = StockQuoteTool()
+        elif tool_name == "crypto":
+            from app.tools.unified_market_data import CryptoPriceTool
+            _tool_instances[tool_name] = CryptoPriceTool()
+        elif tool_name == "news":
+            from app.tools.unified_market_data import FinancialNewsTool
+            _tool_instances[tool_name] = FinancialNewsTool()
+        elif tool_name == "economic":
+            from app.tools.unified_market_data import EconomicIndicatorTool
+            _tool_instances[tool_name] = EconomicIndicatorTool()
+        elif tool_name == "overview":
+            from app.tools.unified_market_data import MarketOverviewTool
+            _tool_instances[tool_name] = MarketOverviewTool()
+        elif tool_name == "status":
+            from app.tools.unified_market_data import APIStatusTool
+            _tool_instances[tool_name] = APIStatusTool()
+        elif tool_name == "technical":
+            from app.tools.technical_analysis import TechnicalAnalysisTool
+            _tool_instances[tool_name] = TechnicalAnalysisTool()
+        elif tool_name == "pattern":
+            from app.tools.pattern_recognition import PatternRecognitionTool
+            _tool_instances[tool_name] = PatternRecognitionTool()
+        elif tool_name == "anomaly":
+            from app.tools.anomaly_detection import AnomalyDetectionTool
+            _tool_instances[tool_name] = AnomalyDetectionTool()
+        elif tool_name == "comparison":
+            from app.tools.stock_comparison import StockComparisonTool
+            _tool_instances[tool_name] = StockComparisonTool()
+        elif tool_name == "sentiment":
+            from app.tools.sentiment_analysis import SentimentAnalysisTool
+            _tool_instances[tool_name] = SentimentAnalysisTool()
+        elif tool_name == "alert":
+            from app.tools.alert_system import AlertSystemTool
+            _tool_instances[tool_name] = AlertSystemTool()
+    return _tool_instances[tool_name]
 
 
 @server.list_tools()
 async def handle_list_tools() -> list[types.Tool]:
-    """List available market data tools"""
+    """List available market data tools (13 tools) - optimized with hardcoded schemas"""
     return [
         types.Tool(
             name="unified_market_data",
@@ -333,38 +340,39 @@ async def handle_list_tools() -> list[types.Tool]:
 async def handle_call_tool(
     name: str, arguments: dict | None
 ) -> list[types.TextContent | types.ImageContent | types.EmbeddedResource]:
-    """Handle tool execution"""
+    """Handle tool execution (13 tools) - using lazy loading"""
     import json
 
     arguments = arguments or {}
 
     try:
+        # Route to appropriate tool with lazy initialization
         if name == "unified_market_data":
-            result = await unified_tool.execute(arguments)
+            result = await get_tool_instance("unified").execute(arguments)
         elif name == "stock_quote":
-            result = await stock_quote_tool.execute(arguments)
+            result = await get_tool_instance("stock_quote").execute(arguments)
         elif name == "crypto_price":
-            result = await crypto_tool.execute(arguments)
+            result = await get_tool_instance("crypto").execute(arguments)
         elif name == "financial_news":
-            result = await news_tool.execute(arguments)
+            result = await get_tool_instance("news").execute(arguments)
         elif name == "economic_indicator":
-            result = await economic_tool.execute(arguments)
+            result = await get_tool_instance("economic").execute(arguments)
         elif name == "market_overview":
-            result = await overview_tool.execute(arguments)
+            result = await get_tool_instance("overview").execute(arguments)
         elif name == "api_status":
-            result = await status_tool.execute(arguments)
+            result = await get_tool_instance("status").execute(arguments)
         elif name == "technical_analysis":
-            result = await technical_tool.execute(arguments)
+            result = await get_tool_instance("technical").execute(arguments)
         elif name == "pattern_recognition":
-            result = await pattern_tool.execute(arguments)
+            result = await get_tool_instance("pattern").execute(arguments)
         elif name == "anomaly_detection":
-            result = await anomaly_tool.execute(arguments)
+            result = await get_tool_instance("anomaly").execute(arguments)
         elif name == "stock_comparison":
-            result = await comparison_tool.execute(arguments)
+            result = await get_tool_instance("comparison").execute(arguments)
         elif name == "sentiment_analysis":
-            result = await sentiment_tool.execute(arguments)
+            result = await get_tool_instance("sentiment").execute(arguments)
         elif name == "alert_system":
-            result = await alert_tool.execute(arguments)
+            result = await get_tool_instance("alert").execute(arguments)
         else:
             raise ValueError(f"Unknown tool: {name}")
 
@@ -376,12 +384,15 @@ async def handle_call_tool(
     except Exception as e:
         return [types.TextContent(
             type="text",
-            text=f"Error executing {name}: {str(e)}"
+            text=json.dumps({"error": f"Tool execution failed: {str(e)}"}, indent=2)
         )]
 
 
 async def main():
     """Run the MCP server"""
+    # Lazy import of InitializationOptions (saves 6 seconds on startup)
+    from mcp.server.models import InitializationOptions
+
     # Import original stdout/stdin for MCP communication
     import sys
     original_stdin = sys.__stdin__

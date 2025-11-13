@@ -9,46 +9,61 @@ Provides 8 comprehensive portfolio tools:
 import sys
 import os
 from pathlib import Path
-import logging
 
 # Add project root to path
 project_root = Path(__file__).parent
 sys.path.insert(0, str(project_root))
 
-# Load environment variables
-from dotenv import load_dotenv
-dotenv_path = project_root.parent.parent / '.env'
-if dotenv_path.exists():
-    load_dotenv(dotenv_path)
+# Load environment variables only if needed
+if not os.getenv('ENVIRONMENT'):
+    from dotenv import load_dotenv
+    dotenv_path = project_root.parent.parent / '.env'
+    if dotenv_path.exists():
+        load_dotenv(dotenv_path)
 
-# Configure logging to stderr ONLY
-logging.basicConfig(
-    level=logging.CRITICAL,  # Only critical errors
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    stream=sys.stderr,
-    force=True
-)
-
-# Disable ALL loggers
+# Minimal logging - disable all
+import logging
 logging.disable(logging.CRITICAL)
 
-from mcp.server.models import InitializationOptions
+# MCP imports (InitializationOptions is lazy-loaded in main())
 from mcp.server import NotificationOptions, Server
 import mcp.server.stdio
 import mcp.types as types
 
-# Import Portfolio Spoke tools
-from app.tools.portfolio_optimizer import portfolio_optimizer
-from app.tools.portfolio_rebalancer import portfolio_rebalancer
-from app.tools.performance_analyzer import performance_analyzer
-from app.tools.backtester import backtester
-from app.tools.factor_analyzer import factor_analyzer
-from app.tools.asset_allocator import asset_allocator
-from app.tools.tax_optimizer import tax_optimizer
-from app.tools.portfolio_dashboard import portfolio_dashboard
-
 # Create MCP server
 server = Server("fin-hub-portfolio")
+
+# Lazy initialization - tools AND imports created on demand
+_tool_instances = {}
+
+def get_tool_instance(tool_name: str):
+    """Get or create tool instance (lazy loading with imports)"""
+    if tool_name not in _tool_instances:
+        if tool_name == "optimize":
+            from app.tools.portfolio_optimizer import portfolio_optimizer
+            _tool_instances[tool_name] = portfolio_optimizer
+        elif tool_name == "rebalance":
+            from app.tools.portfolio_rebalancer import portfolio_rebalancer
+            _tool_instances[tool_name] = portfolio_rebalancer
+        elif tool_name == "performance":
+            from app.tools.performance_analyzer import performance_analyzer
+            _tool_instances[tool_name] = performance_analyzer
+        elif tool_name == "backtest":
+            from app.tools.backtester import backtester
+            _tool_instances[tool_name] = backtester
+        elif tool_name == "factors":
+            from app.tools.factor_analyzer import factor_analyzer
+            _tool_instances[tool_name] = factor_analyzer
+        elif tool_name == "allocate":
+            from app.tools.asset_allocator import asset_allocator
+            _tool_instances[tool_name] = asset_allocator
+        elif tool_name == "tax":
+            from app.tools.tax_optimizer import tax_optimizer
+            _tool_instances[tool_name] = tax_optimizer
+        elif tool_name == "dashboard":
+            from app.tools.portfolio_dashboard import portfolio_dashboard
+            _tool_instances[tool_name] = portfolio_dashboard
+    return _tool_instances[tool_name]
 
 
 @server.list_tools()
@@ -491,29 +506,29 @@ async def handle_list_tools() -> list[types.Tool]:
 async def handle_call_tool(
     name: str, arguments: dict | None
 ) -> list[types.TextContent | types.ImageContent | types.EmbeddedResource]:
-    """Handle tool execution (8 tools)"""
+    """Handle tool execution (8 tools) - using lazy loading"""
     import json
 
     arguments = arguments or {}
 
     try:
-        # Route to appropriate tool
+        # Route to appropriate tool with lazy initialization
         if name == "portfolio_optimize":
-            result = await portfolio_optimizer(**arguments)
+            result = await get_tool_instance("optimize")(**arguments)
         elif name == "portfolio_rebalance":
-            result = await portfolio_rebalancer(**arguments)
+            result = await get_tool_instance("rebalance")(**arguments)
         elif name == "portfolio_analyze_performance":
-            result = await performance_analyzer(**arguments)
+            result = await get_tool_instance("performance")(**arguments)
         elif name == "portfolio_backtest":
-            result = await backtester(**arguments)
+            result = await get_tool_instance("backtest")(**arguments)
         elif name == "portfolio_analyze_factors":
-            result = await factor_analyzer(**arguments)
+            result = await get_tool_instance("factors")(**arguments)
         elif name == "portfolio_allocate_assets":
-            result = await asset_allocator(**arguments)
+            result = await get_tool_instance("allocate")(**arguments)
         elif name == "portfolio_optimize_taxes":
-            result = await tax_optimizer(**arguments)
+            result = await get_tool_instance("tax")(**arguments)
         elif name == "portfolio_generate_dashboard":
-            result = await portfolio_dashboard(**arguments)
+            result = await get_tool_instance("dashboard")(**arguments)
         else:
             raise ValueError(f"Unknown tool: {name}")
 
@@ -532,6 +547,9 @@ async def handle_call_tool(
 
 async def main():
     """Run the MCP server"""
+    # Lazy import of InitializationOptions (saves 6 seconds on startup)
+    from mcp.server.models import InitializationOptions
+
     # Import original stdout/stdin for MCP communication
     import sys
     original_stdin = sys.__stdin__

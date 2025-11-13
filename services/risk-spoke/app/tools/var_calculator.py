@@ -165,10 +165,10 @@ class VaRCalculatorTool:
         return {
             "method": "Historical Simulation",
             "description": "Uses actual historical returns distribution",
-            "var_percent": round(var_return * 100, 4),
-            "var_usd": round(var_usd, 2),
-            "cvar_percent": round(cvar_return * 100, 4),
-            "cvar_usd": round(cvar_usd, 2),
+            "var_percent": float(round(var_return * 100, 4)),
+            "var_usd": float(round(var_usd, 2)),
+            "cvar_percent": float(round(cvar_return * 100, 4)),
+            "cvar_usd": float(round(cvar_usd, 2)),
             "interpretation": f"With {confidence*100}% confidence, maximum loss over {horizon} day(s) will not exceed ${var_usd:,.2f}",
             "worst_case": f"Expected loss in worst {(1-confidence)*100}% scenarios: ${cvar_usd:,.2f}"
         }
@@ -209,16 +209,16 @@ class VaRCalculatorTool:
         return {
             "method": "Parametric (Variance-Covariance)",
             "description": "Assumes normal distribution of returns",
-            "var_percent": round(var_return * 100, 4),
-            "var_usd": round(var_usd, 2),
-            "cvar_percent": round(cvar_return * 100, 4),
-            "cvar_usd": round(cvar_usd, 2),
-            "mean_return": round(mean_return * 100, 4),
-            "std_return": round(std_return * 100, 4),
-            "z_score": round(z_score, 4),
+            "var_percent": float(round(var_return * 100, 4)),
+            "var_usd": float(round(var_usd, 2)),
+            "cvar_percent": float(round(cvar_return * 100, 4)),
+            "cvar_usd": float(round(cvar_usd, 2)),
+            "mean_return": float(round(mean_return * 100, 4)),
+            "std_return": float(round(std_return * 100, 4)),
+            "z_score": float(round(z_score, 4)),
             "normality_test": {
-                "is_normal": is_normal,
-                "p_value": round(p_value, 4),
+                "is_normal": bool(is_normal),
+                "p_value": float(round(p_value, 4)),
                 "warning": "Parametric VaR may be inaccurate" if not is_normal else None
             },
             "interpretation": f"Assuming normal distribution, {confidence*100}% confidence max loss is ${var_usd:,.2f}"
@@ -262,15 +262,15 @@ class VaRCalculatorTool:
         return {
             "method": "Monte Carlo Simulation",
             "description": "Uses random sampling to simulate potential outcomes",
-            "var_percent": round(var_return * 100, 4),
-            "var_usd": round(var_usd, 2),
-            "cvar_percent": round(cvar_return * 100, 4),
-            "cvar_usd": round(cvar_usd, 2),
-            "simulations": simulations,
+            "var_percent": float(round(var_return * 100, 4)),
+            "var_usd": float(round(var_usd, 2)),
+            "cvar_percent": float(round(cvar_return * 100, 4)),
+            "cvar_usd": float(round(cvar_usd, 2)),
+            "simulations": int(simulations),
             "risk_percentiles": {
-                "95% confidence": round(abs(percentiles["95%"] * portfolio_value), 2),
-                "99% confidence": round(abs(percentiles["99%"] * portfolio_value), 2),
-                "99.9% confidence": round(abs(percentiles["99.9%"] * portfolio_value), 2)
+                "95% confidence": float(round(abs(percentiles["95%"] * portfolio_value), 2)),
+                "99% confidence": float(round(abs(percentiles["99%"] * portfolio_value), 2)),
+                "99.9% confidence": float(round(abs(percentiles["99.9%"] * portfolio_value), 2))
             },
             "interpretation": f"Based on {simulations} simulations, {confidence*100}% confidence max loss is ${var_usd:,.2f}"
         }
@@ -290,10 +290,10 @@ class VaRCalculatorTool:
 
         return {
             "comparison": {
-                "average_var": round(avg_var, 2),
-                "average_cvar": round(avg_cvar, 2),
-                "std_deviation": round(std_var, 2),
-                "coefficient_of_variation": round((std_var / avg_var) * 100, 2)
+                "average_var": float(round(avg_var, 2)),
+                "average_cvar": float(round(avg_cvar, 2)),
+                "std_deviation": float(round(std_var, 2)),
+                "coefficient_of_variation": float(round((std_var / avg_var) * 100, 2))
             },
             "most_conservative": {
                 "method": max_var_method[0],
