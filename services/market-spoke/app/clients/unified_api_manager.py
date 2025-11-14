@@ -51,7 +51,11 @@ class UnifiedAPIManager:
 
     async def __aenter__(self):
         """Async context manager entry"""
-        self.session = aiohttp.ClientSession()
+        # Configure timeout for all requests (30 seconds total, 10 seconds connect)
+        timeout = aiohttp.ClientTimeout(total=30, connect=10)
+        # Configure connector with DNS caching
+        connector = aiohttp.TCPConnector(ttl_dns_cache=300)
+        self.session = aiohttp.ClientSession(timeout=timeout, connector=connector)
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):

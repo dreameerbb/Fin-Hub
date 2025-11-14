@@ -18,13 +18,8 @@ from datetime import datetime, timedelta
 import logging
 from scipy import stats
 
-# Internal utilities
-import sys
-from pathlib import Path
-sys.path.append(str(Path(__file__).parent.parent))
-
-from utils.data_loader import load_stock_prices, calculate_returns
-from utils.portfolio_math import calculate_beta, calculate_alpha
+from app.utils.data_loader import load_stock_prices, calculate_returns
+from app.utils.portfolio_math import calculate_beta, calculate_alpha
 
 logger = logging.getLogger(__name__)
 

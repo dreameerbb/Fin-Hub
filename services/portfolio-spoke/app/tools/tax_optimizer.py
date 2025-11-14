@@ -14,12 +14,7 @@ from typing import Dict, List, Optional, Any, Tuple
 from datetime import datetime, timedelta
 import logging
 
-# Internal utilities
-import sys
-from pathlib import Path
-sys.path.append(str(Path(__file__).parent.parent))
-
-from utils.data_loader import load_stock_prices
+from app.utils.data_loader import load_stock_prices
 
 logger = logging.getLogger(__name__)
 
@@ -127,7 +122,9 @@ async def tax_optimizer(
         # Update current prices
         for ticker in positions.keys():
             if ticker in prices.columns and "current_price" not in positions[ticker]:
-                positions[ticker]["current_price"] = float(prices[ticker].iloc[-1])
+                ticker_prices = prices[ticker].dropna()
+                if len(ticker_prices) > 0:
+                    positions[ticker]["current_price"] = float(ticker_prices.iloc[-1])
 
         # Analyze tax loss harvesting opportunities
         tlh_opportunities = _find_tax_loss_harvest_opportunities(

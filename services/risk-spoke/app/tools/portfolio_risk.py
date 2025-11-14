@@ -332,6 +332,17 @@ class PortfolioRiskTool:
                 correlations.append(corr_matrix.iloc[i, j])
                 pairs.append(f"{corr_matrix.index[i]}-{corr_matrix.columns[j]}")
 
+        # Handle single-asset portfolio (no pairwise correlations)
+        if len(correlations) == 0:
+            return {
+                "average_correlation": None,
+                "median_correlation": None,
+                "max_correlation": None,
+                "min_correlation": None,
+                "high_correlation_pairs": [],
+                "note": "Single-asset portfolio - no correlation data"
+            }
+
         correlations = np.array(correlations)
 
         # Find highest and lowest correlations

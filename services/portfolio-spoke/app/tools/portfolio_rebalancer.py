@@ -17,13 +17,8 @@ from typing import Dict, List, Optional, Any, Tuple
 from datetime import datetime
 import logging
 
-# Internal utilities
-import sys
-from pathlib import Path
-sys.path.append(str(Path(__file__).parent.parent))
-
-from utils.data_loader import load_stock_prices
-from utils.portfolio_math import normalize_weights
+from app.utils.data_loader import load_stock_prices
+from app.utils.portfolio_math import normalize_weights
 
 logger = logging.getLogger(__name__)
 

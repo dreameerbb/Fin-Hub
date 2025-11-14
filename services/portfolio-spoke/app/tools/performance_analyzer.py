@@ -14,13 +14,8 @@ from typing import Dict, List, Optional, Any, Tuple
 from datetime import datetime, timedelta
 import logging
 
-# Internal utilities
-import sys
-from pathlib import Path
-sys.path.append(str(Path(__file__).parent.parent))
-
-from utils.data_loader import load_stock_prices, calculate_returns
-from utils.portfolio_math import (
+from app.utils.data_loader import load_stock_prices, calculate_returns
+from app.utils.portfolio_math import (
     sharpe_ratio, sortino_ratio, max_drawdown, calmar_ratio,
     calculate_beta, calculate_alpha, information_ratio,
     annualize_return, annualize_volatility

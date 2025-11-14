@@ -176,7 +176,8 @@ class TechnicalAnalysisTool:
     async def execute(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
         """Execute technical analysis"""
         symbol = arguments.get("symbol", "").upper()
-        requested_indicators = arguments.get("indicators", ["all"])
+        # Normalize indicator names to lowercase
+        requested_indicators = [ind.lower() for ind in arguments.get("indicators", ["all"])]
         period = arguments.get("period", 30)
 
         if not symbol:

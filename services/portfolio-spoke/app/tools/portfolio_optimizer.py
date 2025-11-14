@@ -22,13 +22,8 @@ from scipy.optimize import minimize
 from scipy.cluster.hierarchy import linkage, leaves_list
 from scipy.spatial.distance import squareform
 
-# Internal utilities
-import sys
-from pathlib import Path
-sys.path.append(str(Path(__file__).parent.parent))
-
-from utils.data_loader import load_stock_prices, calculate_returns
-from utils.portfolio_math import (
+from app.utils.data_loader import load_stock_prices, calculate_returns
+from app.utils.portfolio_math import (
     portfolio_return, portfolio_volatility, sharpe_ratio,
     diversification_ratio, herfindahl_index, effective_number_of_assets,
     convert_to_dict, normalize_weights
